@@ -69,4 +69,6 @@ public class AuthController {
         User updated = authService.updateProfile(email, dto);
         return ResponseEntity.ok(updated);
     }
+
+
 }

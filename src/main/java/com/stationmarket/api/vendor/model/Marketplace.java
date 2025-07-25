@@ -1,5 +1,6 @@
 package com.stationmarket.api.vendor.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.stationmarket.api.auth.model.Status;
 import com.stationmarket.api.config.JsonConverter;
 import jakarta.persistence.*;
@@ -17,38 +18,45 @@ public class Marketplace {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String marketName;
 
-    @Column(length = 255)
+    @Column(nullable = false, unique = true, columnDefinition = "TEXT")
+    private String slug;
+
+    @Column(columnDefinition = "TEXT")
     private String shortDes;
 
-    @Lob
-    private String description;
-
+    @Column(columnDefinition = "TEXT")
     private String photo; // bannière ou photo principale
 
+    @Column(columnDefinition = "TEXT")
     private String logo;
 
-    @Column(length = 255)
+    @Column(columnDefinition = "TEXT")
     private String address;
 
     @Column(unique = true, nullable = false)
     private String email;
 
+    @Column(columnDefinition = "TEXT")
     private String phone;
 
     @Enumerated(EnumType.STRING)
     private MarketplaceStatus status;
 
+    @Column(columnDefinition = "TEXT")
     private String themeColor;
 
+    @Column(columnDefinition = "TEXT")
     @Convert(converter = JsonConverter.class)
     private Map<String, String> socialLinks = new HashMap<>();
 
+    @Column(columnDefinition = "TEXT")
     private String openHours;
 
     private Boolean maintenanceMode = false;
+
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "vendor_id", nullable = false)

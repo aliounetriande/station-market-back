@@ -2,6 +2,7 @@ package com.stationmarket.api.vendor.controller;
 
 import com.stationmarket.api.auth.security.CustomUserDetails;
 import com.stationmarket.api.vendor.dto.MarketplaceDto;
+import com.stationmarket.api.vendor.dto.MarketplaceListDto;
 import com.stationmarket.api.vendor.model.Marketplace;
 import com.stationmarket.api.vendor.model.Vendor;
 import com.stationmarket.api.vendor.service.MarketplaceService;
@@ -50,7 +51,6 @@ public class MarketplaceController {
         response.put("id", createdMarketplace.getId());
         response.put("marketName", createdMarketplace.getMarketName());
         response.put("shortDes", createdMarketplace.getShortDes());
-        response.put("description", createdMarketplace.getDescription());
         response.put("email", createdMarketplace.getEmail());
         response.put("phone", createdMarketplace.getPhone());
         response.put("themeColor", createdMarketplace.getThemeColor());
@@ -58,6 +58,21 @@ public class MarketplaceController {
         //response.put("createdAt", createdMarketplace.getCreatedAt());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/{slug}")
+    public ResponseEntity<MarketplaceDto> getBySlug(@PathVariable String slug) {
+        return marketplaceService.findBySlug(slug)
+                .map(m -> {
+                    MarketplaceDto dto = new MarketplaceDto();
+                    dto.setId(m.getId());
+                    dto.setMarketName(m.getMarketName());
+                    // … tous les autres champs …
+                    dto.setSlug(m.getSlug());
+                    return dto;
+                })
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     // Mise à jour de la marketplace
@@ -76,25 +91,31 @@ public class MarketplaceController {
         return ResponseEntity.ok(updatedMarketplace);
     }
 
-    @PreAuthorize("hasAuthority('ROLE_VENDOR')")
     @GetMapping("/all")
-    @Transactional
-    public ResponseEntity<List<Marketplace>> listMyMarketplaces(
+    @PreAuthorize("hasAuthority('ROLE_VENDOR')")
+    public ResponseEntity<List<MarketplaceListDto>> listMyMarketplaces(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        // 1. Récupère le Vendor à partir de l'utilisateur authentifié
         Vendor vendor = vendorService.findByUserId(userDetails.getId())
                 .orElseThrow(() -> new SecurityException("Le vendeur doit être connecté."));
 
-        // 2. Récupère toutes ses marketplaces
         List<Marketplace> list = marketplaceService.getMarketplacesByVendor(vendor);
 
-        // 3. Renvoie 204 si aucune
-        if (list.isEmpty()) {
+        List<MarketplaceListDto> dtoList = list.stream()
+                .map(m -> MarketplaceListDto.builder()
+                        .id(m.getId())
+                        .marketName(m.getMarketName())
+                        .slug(m.getSlug())
+                        .logo(m.getLogo())
+                        .build()
+                ).toList();
+
+        if (dtoList.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(list);
+        return ResponseEntity.ok(dtoList);
     }
+
 
 /**
     // Récupérer la marketplace d'un vendeur

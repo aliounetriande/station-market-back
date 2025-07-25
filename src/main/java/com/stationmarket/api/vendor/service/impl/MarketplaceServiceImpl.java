@@ -39,18 +39,15 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         // Création de nouvelle Marketplace
         Marketplace m = new Marketplace();
         m.setMarketName(dto.getMarketName());
-        m.setShortDes(dto.getShortDes());
-        m.setDescription(dto.getDescription());
         m.setEmail(dto.getEmail());
         m.setPhone(dto.getPhone());
         m.setAddress(dto.getAddress());
         m.setLogo(dto.getLogo());
-        m.setPhoto(dto.getPhoto());
-        m.setStatus(dto.getStatus());
         m.setThemeColor(dto.getThemeColor());
         m.setSocialLinks(dto.getSocialLinks());
         m.setOpenHours(dto.getOpenHours());
-        m.setMaintenanceMode(dto.getMaintenanceMode());
+        String base = toSlug(dto.getSlug());
+        m.setSlug(makeUnique(base));
         m.setVendor(vendor);
         Marketplace savedMarketplace = marketplaceRepository.save(m);
 
@@ -70,10 +67,14 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         if (!m.getVendor().getId().equals(vendor.getId())) {
             throw new SecurityException("Vous n’avez pas accès à cette marketplace");
         }
+        // si slug changé, régénérez‑le et vérifiez l’unicité
+        if (!m.getSlug().equals(dto.getSlug())) {
+            String candidate = toSlug(dto.getSlug());
+            m.setSlug(makeUnique(candidate));
+        }
 
         m.setMarketName(dto.getMarketName());
         m.setShortDes(dto.getShortDes());
-        m.setDescription(dto.getDescription());
         m.setEmail(dto.getEmail());
         m.setPhone(dto.getPhone());
         m.setAddress(dto.getAddress());
@@ -86,6 +87,27 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         m.setMaintenanceMode(dto.getMaintenanceMode());
 
         return marketplaceRepository.save(m);
+    }
+
+    private String toSlug(String input) {
+        return input.trim().toLowerCase()
+                .replaceAll("[^a-z0-9]+", "-")
+                .replaceAll("(^-|-$)", "");
+    }
+
+    private String makeUnique(String base) {
+        String slug = base;
+        int i = 0;
+        while (marketplaceRepository.existsBySlug(slug)) {
+            slug = base + "-" + (++i);
+        }
+        return slug;
+    }
+
+    // nouvel endpoint pour récupérer par slug
+    @Override
+    public Optional<Marketplace> findBySlug(String slug) {
+        return marketplaceRepository.findBySlug(slug);
     }
 
     @Override

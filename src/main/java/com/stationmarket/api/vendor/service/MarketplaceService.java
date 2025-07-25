@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface MarketplaceService {
+    Optional<Marketplace> findBySlug(String slug);
     Marketplace createMarketplace(MarketplaceDto dto, Vendor vendor);
     Marketplace updateMarketplace(Long marketplaceId, MarketplaceDto dto, Vendor vendor);
     Optional<Marketplace> getMarketplaceById(Long id);
