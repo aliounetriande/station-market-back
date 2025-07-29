@@ -58,7 +58,7 @@ public class Marketplace {
     private Boolean maintenanceMode = false;
 
 
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "vendor_id", nullable = false)
     private Vendor vendor;
 }

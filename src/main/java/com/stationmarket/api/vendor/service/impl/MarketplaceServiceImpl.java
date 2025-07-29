@@ -1,12 +1,14 @@
 package com.stationmarket.api.vendor.service.impl;
 
 import com.stationmarket.api.vendor.dto.MarketplaceDto;
+import com.stationmarket.api.vendor.dto.MarketplaceListDto;
 import com.stationmarket.api.vendor.model.Marketplace;
 import com.stationmarket.api.vendor.model.Pack;
 import com.stationmarket.api.vendor.model.Vendor;
 import com.stationmarket.api.vendor.repository.MarketplaceRepository;
 import com.stationmarket.api.vendor.service.MarketplaceService;
 import com.stationmarket.api.vendor.service.PackService;
+import com.stationmarket.api.vendor.service.VendorService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
     private final MarketplaceRepository marketplaceRepository;
     private final PackService packService;
+    private final VendorService vendorService;
 
     @Override
     public Marketplace createMarketplace(MarketplaceDto dto, Vendor vendor) {
@@ -120,9 +123,17 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         return marketplaceRepository.findByVendor(vendor);
     }
 
-    @Override
-    public List<Marketplace> getMarketplacesByVendor(Vendor vendor) {
-        return marketplaceRepository.findAllByVendor(vendor);
-    }
+    //@Override
+   // public List<Marketplace> getMarketplacesByVendor(Vendor vendor) {
+       // return marketplaceRepository.findAllByVendor(vendor);
+    //}
 
+    @Override
+    public List<MarketplaceListDto> listMyMarketplaces(String userEmail) {
+        // 1) récupérer le Vendor associé à cet utilisateur
+        Long vendorId = vendorService.getVendorIdByEmail(userEmail);
+
+        // 2) déléguer au repository qui exécute votre JPQL projection
+        return marketplaceRepository.findAllDtoByVendorId(vendorId);
+    }
 }

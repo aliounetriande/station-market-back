@@ -1,6 +1,7 @@
 package com.stationmarket.api.vendor.service;
 
 import com.stationmarket.api.vendor.dto.MarketplaceDto;
+import com.stationmarket.api.vendor.dto.MarketplaceListDto;
 import com.stationmarket.api.vendor.model.Marketplace;
 import com.stationmarket.api.vendor.model.Vendor;
 
@@ -14,5 +15,6 @@ public interface MarketplaceService {
     Optional<Marketplace> getMarketplaceById(Long id);
     Optional<Marketplace> getMarketplaceByVendor(Vendor vendor);
     /** Récupère toutes les marketplaces d’un vendor */
-    List<Marketplace> getMarketplacesByVendor(Vendor vendor);
+    //List<Marketplace> getMarketplacesByVendor(Vendor vendor);
+    List<MarketplaceListDto> listMyMarketplaces(String userEmail);
 }

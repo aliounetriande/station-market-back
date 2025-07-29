@@ -103,6 +103,11 @@ public class VendorService {
                 .flatMap(user -> vendorRepository.findByUserId(user.getId()));
     }
 
+    public Long getVendorIdByEmail(String email) {
+        return vendorRepository.findIdByUserEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Vendor introuvable"));
+    }
+
     public Vendor save(Vendor vendor) {
         return vendorRepository.save(vendor);
     }

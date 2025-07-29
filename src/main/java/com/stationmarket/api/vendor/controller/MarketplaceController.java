@@ -91,29 +91,42 @@ public class MarketplaceController {
         return ResponseEntity.ok(updatedMarketplace);
     }
 
-    @GetMapping("/all")
+//    @GetMapping("/all")
+//    @PreAuthorize("hasAuthority('ROLE_VENDOR')")
+//    public ResponseEntity<List<MarketplaceListDto>> listMyMarketplaces(
+//            @AuthenticationPrincipal CustomUserDetails userDetails) {
+//
+//        Vendor vendor = vendorService.findByUserId(userDetails.getId())
+//                .orElseThrow(() -> new SecurityException("Le vendeur doit être connecté."));
+//
+//        List<Marketplace> list = marketplaceService.getMarketplacesByVendor(vendor);
+//
+//        List<MarketplaceListDto> dtoList = list.stream()
+//                .map(m -> MarketplaceListDto.builder()
+//                        .id(m.getId())
+//                        .marketName(m.getMarketName())
+//                        .slug(m.getSlug())
+//                        .logo(m.getLogo())
+//                        .build()
+//                ).toList();
+//
+//        if (dtoList.isEmpty()) {
+//            return ResponseEntity.noContent().build();
+//        }
+//        return ResponseEntity.ok(dtoList);
+//    }
+
     @PreAuthorize("hasAuthority('ROLE_VENDOR')")
+    @GetMapping("/all")
     public ResponseEntity<List<MarketplaceListDto>> listMyMarketplaces(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        Vendor vendor = vendorService.findByUserId(userDetails.getId())
-                .orElseThrow(() -> new SecurityException("Le vendeur doit être connecté."));
-
-        List<Marketplace> list = marketplaceService.getMarketplacesByVendor(vendor);
-
-        List<MarketplaceListDto> dtoList = list.stream()
-                .map(m -> MarketplaceListDto.builder()
-                        .id(m.getId())
-                        .marketName(m.getMarketName())
-                        .slug(m.getSlug())
-                        .logo(m.getLogo())
-                        .build()
-                ).toList();
-
-        if (dtoList.isEmpty()) {
+        List<MarketplaceListDto> dtos =
+                marketplaceService.listMyMarketplaces(userDetails.getUsername());
+        if (dtos.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(dtoList);
+        return ResponseEntity.ok(dtos);
     }
 
 
