@@ -19,7 +19,7 @@ public class CategoryService {
     public CategoryDto create(String slug, String name) {
 
         Marketplace mp = marketplaceRepository.findBySlug(slug)
-                qq
+
                 .orElseThrow(() -> new IllegalArgumentException("Marketplace introuvable"));
         Category cat = Category.builder()
                 .name(name)
@@ -29,6 +29,23 @@ public class CategoryService {
         return toDto(cat);
 
     }
+
+    public CategoryDto update(Long id, String name) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Catégorie introuvable"));
+
+        category.setName(name);
+        categoryRepository.save(category);
+        return toDto(category);
+    }
+
+    public void delete(Long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Catégorie introuvable"));
+
+        categoryRepository.delete(category);
+    }
+
 
     public List<CategoryDto> listBySlug(String slug) {
         List<Category> list = categoryRepository.findByMarketplace_Slug(slug);

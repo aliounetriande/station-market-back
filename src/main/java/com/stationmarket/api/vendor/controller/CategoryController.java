@@ -24,6 +24,16 @@ public class CategoryController {
         return categoryService.create(dto.getMarketplaceSlug(), dto.getName());
     }
 
+    @PutMapping("/{id}")
+    public CategoryDto update(@PathVariable Long id, @RequestParam String name) {
+        return categoryService.update(id, name);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        categoryService.delete(id);
+    }
+
     @GetMapping("/by-slug/{slug}")
     public List<CategoryDto> listBySlug(@PathVariable String slug) {
         return categoryService.listBySlug(slug);
