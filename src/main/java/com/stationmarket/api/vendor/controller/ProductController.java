@@ -22,6 +22,17 @@ public class ProductController {
         return productService.create(dto);
     }
 
+    @PutMapping("/{id}")
+    public ProductDto update(@PathVariable Long id, @RequestBody ProductDto dto) {
+        dto.setId(id);
+        return productService.update(dto);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        productService.delete(id);
+    }
+
     @GetMapping("/by-marketplace/{slug}")
     public ResponseEntity<List<ProductDto>> listByMarketplace(@PathVariable String slug) {
         List<ProductDto> list = productService.listByMarketplaceSlug(slug);

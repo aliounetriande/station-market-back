@@ -9,6 +9,6 @@ import java.util.Optional;
 
 public interface VendorRepository extends JpaRepository<Vendor, Long> {
     Optional<Vendor> findByUserId(Long userId);
-    @Query("select v.id from Vendor v join v.user u where u.email = :email")
+    @Query("select distinct v.id from Vendor v join v.user u where u.email = :email")
     Optional<Long> findIdByUserEmail(@Param("email") String email);
 }

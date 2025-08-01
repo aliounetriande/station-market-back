@@ -4,6 +4,8 @@ import com.stationmarket.api.auth.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -30,6 +32,6 @@ public class Vendor {
     @Column(nullable = false)
     private VendorCategory category;   // ← passe en enum
 
-    @OneToOne(mappedBy = "vendor")
-    private Marketplace marketplace;
+    @OneToMany(mappedBy = "vendor", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Marketplace> marketplaces;
 }
