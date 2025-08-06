@@ -2,6 +2,7 @@ package com.stationmarket.api.vendor.service.impl;
 
 import com.stationmarket.api.vendor.dto.MarketplaceDto;
 import com.stationmarket.api.vendor.dto.MarketplaceListDto;
+import com.stationmarket.api.vendor.dto.MarketplaceUpdateDto;
 import com.stationmarket.api.vendor.model.Marketplace;
 import com.stationmarket.api.vendor.model.Pack;
 import com.stationmarket.api.vendor.model.Vendor;
@@ -10,9 +11,13 @@ import com.stationmarket.api.vendor.service.MarketplaceService;
 import com.stationmarket.api.vendor.service.PackService;
 import com.stationmarket.api.vendor.service.VendorService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,9 +25,18 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MarketplaceServiceImpl implements MarketplaceService {
 
-    private final MarketplaceRepository marketplaceRepository;
+    //private final MarketplaceRepository marketplaceRepository;
     private final PackService packService;
     private final VendorService vendorService;
+
+    @Autowired
+    private MarketplaceRepository marketplaceRepository;
+
+    @Override
+    public Marketplace save(Marketplace marketplace) {
+        return marketplaceRepository.save(marketplace);
+    }
+
 
     @Override
     public Marketplace createMarketplace(MarketplaceDto dto, Vendor vendor) {
@@ -63,19 +77,32 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     }
 
     @Override
-    public Marketplace updateMarketplace(Long id, MarketplaceDto dto, Vendor vendor) {
+    public Marketplace updateMarketplace(Long id,
+                                         MarketplaceUpdateDto dto,
+                                         Vendor vendor) {
+        // 1) Récupération et contrôle d'existence
         Marketplace m = marketplaceRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Marketplace non trouvé"));
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Marketplace non trouvée pour l'ID " + id));
 
+        // 2) Vérification des droits
         if (!m.getVendor().getId().equals(vendor.getId())) {
-            throw new SecurityException("Vous n’avez pas accès à cette marketplace");
-        }
-        // si slug changé, régénérez‑le et vérifiez l’unicité
-        if (!m.getSlug().equals(dto.getSlug())) {
-            String candidate = toSlug(dto.getSlug());
-            m.setSlug(makeUnique(candidate));
+            throw new AccessDeniedException(
+                    "Vous n’avez pas les droits pour modifier cette marketplace");
         }
 
+        // 3) Slug : régénération + unicité (on ignore l'entité courante via existsBy...AndIdNot)
+        String newSlugBase = toSlug(dto.getSlug());
+        if (!m.getSlug().equals(newSlugBase)) {
+            boolean exists = marketplaceRepository
+                    .existsBySlugAndIdNot(newSlugBase, m.getId());
+            String unique = exists
+                    ? makeUnique(newSlugBase)
+                    : newSlugBase;
+            m.setSlug(unique);
+        }
+
+        // 4) Application des autres champs
         m.setMarketName(dto.getMarketName());
         m.setShortDes(dto.getShortDes());
         m.setEmail(dto.getEmail());
@@ -89,6 +116,8 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         m.setOpenHours(dto.getOpenHours());
         m.setMaintenanceMode(dto.getMaintenanceMode());
 
+
+        // 6) Persistance
         return marketplaceRepository.save(m);
     }
 

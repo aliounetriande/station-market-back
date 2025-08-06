@@ -3,6 +3,7 @@ package com.stationmarket.api.auth.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.*;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -75,6 +76,12 @@ public class SecurityConfig {
                 // 3. Règles d’accès
                 .authorizeHttpRequests(authz -> authz
                         // seuls ces endpoints sont publics
+
+                        // 1) PUBLIC : accès aux images uploadées
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+
+                        // 3) AUTH pour l’auth & swagger
                         .requestMatchers(
                                 "/stationmarket/auth/login",
                                 "/stationmarket/auth/register",

@@ -46,6 +46,14 @@ public class CategoryService {
         categoryRepository.delete(category);
     }
 
+    public long countAllCategories() {
+        return categoryRepository.count();
+    }
+
+    public Long countByMarketplaceSlug(String slug) {
+        return categoryRepository.countByMarketplaceSlug(slug);
+    }
+
 
     public List<CategoryDto> listBySlug(String slug) {
         List<Category> list = categoryRepository.findByMarketplace_Slug(slug);

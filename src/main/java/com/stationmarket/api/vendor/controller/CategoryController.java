@@ -3,6 +3,7 @@ package com.stationmarket.api.vendor.controller;
 import com.stationmarket.api.vendor.dto.CategoryDto;
 import com.stationmarket.api.vendor.service.CategoryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,6 +33,16 @@ public class CategoryController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         categoryService.delete(id);
+    }
+
+    @GetMapping("/count")
+    public ResponseEntity<Long> countCategories() {
+        return ResponseEntity.ok(categoryService.countAllCategories());
+    }
+
+    @GetMapping("/count/by-marketplace/{slug}")
+    public ResponseEntity<Long> countProductsByMarketplace(@PathVariable String slug) {
+        return ResponseEntity.ok(categoryService.countByMarketplaceSlug(slug));
     }
 
     @GetMapping("/by-slug/{slug}")

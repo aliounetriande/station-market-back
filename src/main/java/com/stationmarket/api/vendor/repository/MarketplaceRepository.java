@@ -27,6 +27,8 @@ public interface MarketplaceRepository extends JpaRepository<Marketplace, Long> 
     boolean existsBySlug(String slug);
     Optional<Marketplace> findBySlug(String slug);
 
+    boolean existsBySlugAndIdNot(String slug, Long id);
+
     Optional<Marketplace> findByVendor(Vendor vendor);
     // Pour plusieurs marketplaces (packs Standard & Premium)
     //List<Marketplace> findAllByVendor(Vendor vendor);

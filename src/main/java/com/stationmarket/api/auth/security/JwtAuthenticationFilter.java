@@ -21,7 +21,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
         // on ne filtre pas /stationmarket/auth/** et les docs swagger
-        return path.startsWith("/stationmarket/auth/") || path.startsWith("/stationmarket/swagger-ui/") || path.equals("/error");
+        return path.startsWith("/stationmarket/auth/") || path.startsWith("/stationmarket/swagger-ui/") ||
+                path.startsWith("/api/products/photo/") ||
+               //path.startsWith("/api/products/image/") ||
+                path.startsWith("/uploads/") ||
+                path.equals("/error");
     }
 
     @Override
