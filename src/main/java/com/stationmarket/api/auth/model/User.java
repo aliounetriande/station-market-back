@@ -25,6 +25,16 @@ public class User {
 
     private String photo;
 
+    // ✅ AJOUTS pour le système d'invitation
+    private String phone;
+    private String address;
+
+    @Enumerated(EnumType.STRING)
+    private InvitationType invitedAs; // ✅ NOUVEAU
+
+    @Builder.Default
+    private Boolean profileCompleted = false; // ✅ NOUVEAU
+
     private String provider;     // ex. "google", "facebook"
     private String providerId;   // id renvoyé par le fournisseur
 
@@ -38,4 +48,3 @@ public class User {
     )
     private Set<Role> roles;
 }
-

@@ -7,6 +7,7 @@ import com.stationmarket.api.vendor.model.Vendor;
 import com.stationmarket.api.vendor.service.VendorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,6 +31,7 @@ public class VendorController {
     }
 
     @GetMapping("/me")
+    @PreAuthorize("hasRole('ROLE_VENDOR')")
     public ResponseEntity<VendorDto> getMyVendor(Authentication auth) {
         String email = auth.getName();
         return vendorService.findByUserEmail(email)
@@ -38,7 +40,7 @@ public class VendorController {
                         .phone(v.getPhone())
                         .address(v.getAddress())
                         .category(v.getCategory().name())
-                        .packId(v.getPack().getId())
+                        .packId(v.getPack() != null ? v.getPack().getId() : null) // ✅ Gestion du null
                         // ← on récupère l’utilisateur associé
                         .email(v.getUser().getEmail())
                         .name(v.getUser().getName())

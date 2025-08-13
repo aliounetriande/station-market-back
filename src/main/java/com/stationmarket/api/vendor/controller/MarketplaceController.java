@@ -1,9 +1,7 @@
 package com.stationmarket.api.vendor.controller;
 
 import com.stationmarket.api.auth.security.CustomUserDetails;
-import com.stationmarket.api.vendor.dto.MarketplaceDto;
-import com.stationmarket.api.vendor.dto.MarketplaceListDto;
-import com.stationmarket.api.vendor.dto.MarketplaceUpdateDto;
+import com.stationmarket.api.vendor.dto.*;
 import com.stationmarket.api.vendor.model.Marketplace;
 import com.stationmarket.api.vendor.model.Vendor;
 import com.stationmarket.api.vendor.service.MarketplaceService;
@@ -150,6 +148,26 @@ public class MarketplaceController {
         return ResponseEntity.ok(resp);
     }
 
+    // Ajoutez ces endpoints dans votre MarketplaceController existant
+    @GetMapping("/user/marketplaces")
+    @PreAuthorize("hasAuthority('ROLE_VENDOR')")
+    public ResponseEntity<List<MarketplaceAccessDto>> getUserMarketplaces(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        List<MarketplaceAccessDto> marketplaces = marketplaceService.getUserMarketplaces(userDetails.getId());
+        return ResponseEntity.ok(marketplaces);
+    }
+
+    @GetMapping("/user/marketplace/{slug}/permissions")
+    @PreAuthorize("hasAuthority('ROLE_VENDOR')")
+    public ResponseEntity<UserMarketplacePermissions> getUserMarketplacePermissions(
+            @PathVariable String slug,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        UserMarketplacePermissions permissions = marketplaceService.getUserPermissions(userDetails.getId(), slug);
+        return ResponseEntity.ok(permissions);
+    }
+
 //    // Mise à jour de la marketplace
 //    @PreAuthorize("hasAuthority('ROLE_VENDOR')")
 //    @PutMapping("/update/{id}")
@@ -234,6 +252,8 @@ public class MarketplaceController {
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new MarketplaceNotFoundException("Marketplace non trouvée"));
     }
+
+
 
 
     // Gestion des erreurs pour MarketplaceNotFoundException

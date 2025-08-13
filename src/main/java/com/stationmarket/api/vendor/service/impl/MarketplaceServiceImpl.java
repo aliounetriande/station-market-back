@@ -1,11 +1,11 @@
 package com.stationmarket.api.vendor.service.impl;
 
-import com.stationmarket.api.vendor.dto.MarketplaceDto;
-import com.stationmarket.api.vendor.dto.MarketplaceListDto;
-import com.stationmarket.api.vendor.dto.MarketplaceUpdateDto;
+import com.stationmarket.api.vendor.dto.*;
 import com.stationmarket.api.vendor.model.Marketplace;
+import com.stationmarket.api.vendor.model.MarketplaceEditor;
 import com.stationmarket.api.vendor.model.Pack;
 import com.stationmarket.api.vendor.model.Vendor;
+import com.stationmarket.api.vendor.repository.MarketplaceEditorRepository;
 import com.stationmarket.api.vendor.repository.MarketplaceRepository;
 import com.stationmarket.api.vendor.service.MarketplaceService;
 import com.stationmarket.api.vendor.service.PackService;
@@ -18,6 +18,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,6 +32,9 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
     @Autowired
     private MarketplaceRepository marketplaceRepository;
+
+    @Autowired
+    private MarketplaceEditorRepository marketplaceEditorRepository;
 
     @Override
     public Marketplace save(Marketplace marketplace) {
@@ -164,5 +168,82 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
         // 2) déléguer au repository qui exécute votre JPQL projection
         return marketplaceRepository.findAllDtoByVendorId(vendorId);
+    }
+
+    // Ajoutez ces méthodes dans votre MarketplaceServiceImpl
+
+    @Override
+    public List<MarketplaceAccessDto> getUserMarketplaces(Long userId) {
+        List<MarketplaceAccessDto> result = new ArrayList<>();
+
+        // 1. Marketplaces dont l'utilisateur est propriétaire (via Vendor)
+        Optional<Vendor> vendor = vendorService.findByUserId(userId);
+        if (vendor.isPresent()) {
+            List<Marketplace> ownedMarketplaces = marketplaceRepository.findAllByVendor(vendor.get());
+            for (Marketplace m : ownedMarketplaces) {
+                result.add(new MarketplaceAccessDto(
+                        m.getId(),
+                        m.getMarketName(),
+                        m.getSlug(),
+                        m.getLogo(),
+                        "OWNER"
+                ));
+            }
+        }
+
+        // 2. Marketplaces où l'utilisateur est éditeur
+        List<MarketplaceEditor> editorRoles = marketplaceEditorRepository.findByUserId(userId);
+        for (MarketplaceEditor editor : editorRoles) {
+            Marketplace m = editor.getMarketplace();
+            result.add(new MarketplaceAccessDto(
+                    m.getId(),
+                    m.getMarketName(),
+                    m.getSlug(),
+                    m.getLogo(),
+                    "EDITOR"
+            ));
+        }
+
+        return result;
+    }
+
+    @Override
+    public UserMarketplacePermissions getUserPermissions(Long userId, String marketplaceSlug) {
+        Marketplace marketplace = marketplaceRepository.findBySlug(marketplaceSlug)
+                .orElseThrow(() -> new EntityNotFoundException("Marketplace non trouvée"));
+
+        UserMarketplacePermissions permissions = new UserMarketplacePermissions();
+        permissions.setMarketplaceSlug(marketplaceSlug);
+        permissions.setUserId(userId);
+
+        // Vérifier si c'est le propriétaire (via Vendor)
+        Optional<Vendor> vendor = vendorService.findByUserId(userId);
+        if (vendor.isPresent() && marketplace.getVendor().getId().equals(vendor.get().getId())) {
+            permissions.setRole("OWNER");
+            permissions.setCanManageProducts(true);
+            permissions.setCanManageCategories(true);
+            permissions.setCanManageOrders(true);
+            permissions.setCanManageSettings(true);
+            permissions.setCanInviteUsers(true);
+            permissions.setCanViewAnalytics(true);
+        } else {
+            // Vérifier si c'est un éditeur
+            Optional<MarketplaceEditor> editor = marketplaceEditorRepository
+                    .findByUserIdAndMarketplaceId(userId, marketplace.getId());
+
+            if (editor.isPresent()) {
+                permissions.setRole("EDITOR");
+                permissions.setCanManageProducts(true);
+                permissions.setCanManageCategories(true);
+                permissions.setCanManageOrders(true);
+                permissions.setCanManageSettings(false); // Éditeur ne peut pas gérer les paramètres
+                permissions.setCanInviteUsers(true);     // Permettre à l'éditeur d'inviter
+                permissions.setCanViewAnalytics(true);
+            } else {
+                throw new AccessDeniedException("Vous n'avez pas accès à cette marketplace");
+            }
+        }
+
+        return permissions;
     }
 }

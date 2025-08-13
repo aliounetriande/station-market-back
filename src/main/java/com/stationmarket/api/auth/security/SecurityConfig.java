@@ -9,6 +9,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -77,6 +78,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         // seuls ces endpoints sont publics
 
+                        // ERROR endpoint public (TRÈS IMPORTANT)
+                        .requestMatchers("/error").permitAll()
+
                         // 1) PUBLIC : accès aux images uploadées
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
@@ -90,8 +94,21 @@ public class SecurityConfig {
                         // swagger-ui reste accessible sans authentification
                         .requestMatchers("/stationmarket/swagger-ui/**").permitAll()
 
-                        // /profile exige un JWT valide (auth ne sera plus null)
+                        // /exigent un JWT valide (auth ne sera plus null)
+                        .requestMatchers("/stationmarket/auth/me").authenticated()
+                        .requestMatchers("/stationmarket/auth/complete-invited-profile").authenticated()
+                        .requestMatchers("/stationmarket/auth/mark-profile-partial").authenticated()
                         .requestMatchers("/stationmarket/auth/profile").authenticated()
+
+                        //  INVITATIONS : Endpoints PUBLICS d'abord (plus spécifiques)
+                        .requestMatchers("/api/invitations/validate/**").permitAll()
+                        .requestMatchers("/api/invitations/accept-complete").permitAll()
+                        .requestMatchers("/api/invitations/accept").permitAll()
+
+                        //  INVITATIONS : Endpoints PROTÉGÉS ensuite (moins spécifiques)
+                        .requestMatchers("/api/invitations/marketplace/**").hasAuthority("ROLE_VENDOR")
+                        .requestMatchers(HttpMethod.DELETE, "/api/invitations/**").hasAuthority("ROLE_VENDOR")
+
 
                         // accès restreint aux utilisateurs avec le rôle ROLE_VENDOR
                         .requestMatchers("/stationmarket/vendor/marketplaces/*").hasAuthority("ROLE_VENDOR")
@@ -108,5 +125,11 @@ public class SecurityConfig {
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    // Ajoutez cette méthode dans SecurityConfig pour debug
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return web -> web.debug(true); // Active les logs de sécurité
     }
 }

@@ -1,8 +1,6 @@
 package com.stationmarket.api.vendor.service;
 
-import com.stationmarket.api.vendor.dto.MarketplaceDto;
-import com.stationmarket.api.vendor.dto.MarketplaceListDto;
-import com.stationmarket.api.vendor.dto.MarketplaceUpdateDto;
+import com.stationmarket.api.vendor.dto.*;
 import com.stationmarket.api.vendor.model.Marketplace;
 import com.stationmarket.api.vendor.model.Vendor;
 
@@ -20,4 +18,7 @@ public interface MarketplaceService {
     List<MarketplaceListDto> listMyMarketplaces(String userEmail);
 
     Marketplace save(Marketplace marketplace);
+
+    List<MarketplaceAccessDto> getUserMarketplaces(Long userId);
+    UserMarketplacePermissions getUserPermissions(Long userId, String marketplaceSlug);
 }

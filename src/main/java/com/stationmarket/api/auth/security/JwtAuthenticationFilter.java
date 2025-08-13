@@ -8,11 +8,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtils jwtUtils;
     private final CustomUserDetailsService userDetailsService;
@@ -20,50 +22,88 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
-        // on ne filtre pas /stationmarket/auth/** et les docs swagger
-        return path.startsWith("/stationmarket/auth/") || path.startsWith("/stationmarket/swagger-ui/") ||
-                path.startsWith("/api/products/photo/") ||
-               //path.startsWith("/api/products/image/") ||
-                path.startsWith("/uploads/") ||
-                path.equals("/error");
+
+        // ✅ CORRECTION : Endpoints PUBLICS spécifiques seulement
+        boolean shouldSkip =
+                // Endpoints publics d'authentification
+                path.equals("/stationmarket/auth/login") ||
+                        path.equals("/stationmarket/auth/register") ||
+                        path.equals("/stationmarket/auth/confirm") ||
+
+                        // Autres endpoints publics
+                        path.startsWith("/stationmarket/swagger-ui/") ||
+                        path.startsWith("/api/products/photo/") ||
+                        path.startsWith("/uploads/") ||
+                        path.equals("/error") ||
+
+                        // Endpoints d'invitation publics
+                        path.startsWith("/api/invitations/validate/") ||
+                        path.equals("/api/invitations/accept-complete") ||
+                        path.equals("/api/invitations/accept");
+
+        if (shouldSkip) {
+            log.info("✅ [JWT FILTER] SKIP pour endpoint public: {}", path);
+        } else {
+            log.info("🔒 [JWT FILTER] Traitement JWT pour: {}", path);
+        }
+
+        return shouldSkip;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res,
                                     FilterChain chain) throws ServletException, java.io.IOException {
+
+        String path = req.getServletPath();
+        log.info("🔍 [JWT FILTER] Processing protected endpoint: {}", path);
+
         String header = req.getHeader("Authorization");
+
         if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7); // Extraire le token sans le préfixe "Bearer "
+            String token = header.substring(7);
+
             if (jwtUtils.validateJwtToken(token)) {
-                String email = jwtUtils.getEmailFromToken(token);
+                try {
+                    String email = jwtUtils.getEmailFromToken(token);
 
-                // Chargez les rôles à partir du JWT
-                List<GrantedAuthority> authorities = jwtUtils.getRolesFromToken(token);
+                    // Chargez les rôles à partir du JWT
+                    List<GrantedAuthority> authorities = jwtUtils.getRolesFromToken(token);
 
-                // Chargez l'utilisateur à partir du CustomUserDetailsService
-                UserDetails uds = userDetailsService.loadUserByUsername(email);
+                    // Chargez l'utilisateur à partir du CustomUserDetailsService
+                    UserDetails uds = userDetailsService.loadUserByUsername(email);
 
-                // Affichez les rôles dans les logs pour vérifier
-                System.out.println("Roles dans UserDetails: " + uds.getAuthorities());
+                    log.info("✅ [JWT FILTER] Roles dans UserDetails: {}", uds.getAuthorities());
+                    log.info("✅ [JWT FILTER] Roles extraits du JWT: {}", authorities);
 
-                // Combinez les autorités extraites du JWT avec celles du UserDetails (si nécessaire)
-                List<GrantedAuthority> allAuthorities = authorities.stream()
-                        .collect(Collectors.toList()); // Conservez uniquement les rôles extraits du JWT
+                    // Créez un token d'authentification avec les rôles du JWT
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            uds, null, authorities);
 
-                // Créez un token d'authentification avec les rôles combinés
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        uds, null, allAuthorities);  // Attribuez les rôles au token
+                    // Définissez l'authentification dans le contexte de sécurité
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
 
-                // Définissez l'authentification dans le contexte de sécurité
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                    log.info("✅ [JWT FILTER] Authentification réussie pour: {}", email);
 
-                System.out.println("Roles extraits du JWT: " + authorities);
+                } catch (Exception e) {
+                    log.error("❌ [JWT FILTER] Erreur lors de l'authentification: ", e);
+                    SecurityContextHolder.clearContext();
+                }
+            } else {
+                log.warn("⚠️ [JWT FILTER] Token JWT invalide");
+                SecurityContextHolder.clearContext();
             }
+        } else {
+            log.warn("⚠️ [JWT FILTER] Pas de token Authorization Bearer trouvé");
         }
-        System.out.println("Roles dans le SecurityContext : " + SecurityContextHolder.getContext().getAuthentication().getAuthorities());
 
-        chain.doFilter(req, res); // Passer la requête à la chaîne de filtres suivante
+        // ✅ CORRECTION CRITIQUE : Vérifier que l'authentication existe avant d'accéder aux authorities
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getAuthorities() != null) {
+            log.info("✅ [JWT FILTER] Roles finaux dans le SecurityContext: {}", authentication.getAuthorities());
+        } else {
+            log.info("ℹ️ [JWT FILTER] Aucune authentification dans le SecurityContext (normal pour endpoints protégés sans token)");
+        }
+
+        chain.doFilter(req, res);
     }
-
-
 }

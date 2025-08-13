@@ -13,6 +13,8 @@ import com.stationmarket.api.common.dto.SignupRequest;
 import com.stationmarket.api.auth.security.CustomUserDetails;
 import com.stationmarket.api.auth.security.JwtUtils;
 import com.stationmarket.api.common.dto.JwtResponse;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -28,6 +30,7 @@ import jakarta.transaction.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +45,12 @@ public class AuthService {
 
     @Value("${app.front-url}")
     private String frontUrl;
+
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+
+    @Value("${jwt.expirationMs}")
+    private long jwtExpirationMs;
 
     public JwtResponse authenticate(LoginRequest req) {
         Authentication auth = authenticationManager.authenticate(
@@ -132,5 +141,21 @@ public class AuthService {
         u.setEmail(dto.getEmail());
         // si tu veux gérer mot de passe/photo, etc. : u.setPassword(…), u.setPhoto(…)
         return userRepo.save(u);
+    }
+
+    public String generateJwtToken(User user) {
+        return Jwts.builder()
+                .setSubject(user.getEmail())
+                .claim("email", user.getEmail())
+                .claim("name", user.getName())
+                .claim("invitedAs", user.getInvitedAs()) // Si applicable
+                .claim("profileCompleted", user.getProfileCompleted()) // Si applicable
+                .claim("roles", user.getRoles().stream()
+                        .map(role -> role.getName().name())
+                        .collect(Collectors.toList()))
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
+                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .compact();
     }
 }

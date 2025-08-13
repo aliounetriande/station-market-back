@@ -7,6 +7,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,33 +29,39 @@ public class ProductController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ROLE_VENDOR')")
     public ProductDto create(@RequestBody ProductDto dto) {
         return productService.create(dto);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_VENDOR')")
     public ProductDto update(@PathVariable Long id, @RequestBody ProductDto dto) {
         dto.setId(id);
         return productService.update(dto);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_VENDOR')")
     public void delete(@PathVariable Long id) {
         productService.delete(id);
     }
 
     @GetMapping("/count")
+    @PreAuthorize("hasAuthority('ROLE_VENDOR')")
     public ResponseEntity<Long> countProducts() {
         return ResponseEntity.ok(productService.countAllProducts());
     }
 
     @GetMapping("/count/by-marketplace/{slug}")
+    @PreAuthorize("hasAuthority('ROLE_VENDOR')")
     public ResponseEntity<Long> countProductsByMarketplace(@PathVariable String slug) {
         return ResponseEntity.ok(productService.countByMarketplaceSlug(slug));
     }
 
 
     @GetMapping("/by-marketplace/{slug}")
+    @PreAuthorize("hasAuthority('ROLE_VENDOR')")
     public ResponseEntity<List<ProductDto>> listByMarketplace(@PathVariable String slug) {
         List<ProductDto> list = productService.listByMarketplaceSlug(slug);
         return ResponseEntity.ok(list);
@@ -67,6 +74,7 @@ public class ProductController {
      * Le fichier est sauvegardé sur disque et le nom enregistré en bdd.
      */
     @PostMapping(value = "/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAuthority('ROLE_VENDOR')")
     public ResponseEntity<ProductDto> uploadPhoto(
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file) throws IOException {

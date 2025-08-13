@@ -11,6 +11,7 @@ import org.springframework.core.io.Resource;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class ProductService {
 
     // dossier local uploads/
@@ -37,8 +39,8 @@ public class ProductService {
 
     private final CategoryRepository categoryRepository;
     private final MarketplaceRepository marketplaceRepository;
-    //private final ProductRepository productRepository;
 
+    // ✅ MÉTHODES EXISTANTES INCHANGÉES (pour compatibilité)
     public ProductDto create(ProductDto dto) {
         Marketplace mp = marketplaceRepository.findBySlug(dto.getMarketplaceSlug())
                 .orElseThrow(() -> new IllegalArgumentException("Marketplace introuvable"));
@@ -50,7 +52,7 @@ public class ProductService {
                 .name(dto.getName())
                 .description(dto.getDescription())
                 .price(dto.getPrice())
-                .photo(dto.getPhoto()) // si c’est une URL ou valeur encodée
+                .photo(dto.getPhoto()) // si c'est une URL ou valeur encodée
                 .category(category)
                 .marketplace(mp)
                 .build();
@@ -90,7 +92,6 @@ public class ProductService {
                 .build();
     }
 
-
     public void delete(Long id) {
         if (!productRepository.existsById(id)) {
             throw new RuntimeException("Produit non trouvé");
@@ -106,13 +107,52 @@ public class ProductService {
         return productRepository.countByMarketplaceSlug(slug);
     }
 
-
     public List<ProductDto> listByMarketplaceSlug(String slug) {
         Marketplace marketplace = marketplaceRepository.findBySlug(slug)
                 .orElseThrow(() -> new RuntimeException("Marketplace introuvable"));
 
         List<Product> products = productRepository.findByMarketplaceId(marketplace.getId());
         return products.stream().map(this::toDto).collect(Collectors.toList());
+    }
+
+    // ✅ NOUVELLES MÉTHODES SÉCURISÉES (pour le contrôleur)
+    public ProductDto create(ProductDto dto, String userEmail) {
+        log.info("🔍 [PRODUCT SERVICE] Création produit marketplace {} par {}", dto.getMarketplaceSlug(), userEmail);
+        // TODO: Ajouter vérification des permissions EDITOR/OWNER ici plus tard
+        return create(dto);
+    }
+
+    public ProductDto update(ProductDto dto, String userEmail) {
+        log.info("🔍 [PRODUCT SERVICE] Modification produit {} par {}", dto.getId(), userEmail);
+        // TODO: Ajouter vérification des permissions EDITOR/OWNER ici plus tard
+        return update(dto);
+    }
+
+    public void delete(Long id, String userEmail) {
+        log.info("🔍 [PRODUCT SERVICE] Suppression produit {} par {}", id, userEmail);
+        // TODO: Ajouter vérification des permissions EDITOR/OWNER ici plus tard
+        delete(id);
+    }
+
+    public List<ProductDto> listByMarketplaceSlug(String slug, String userEmail) {
+        log.info("🔍 [PRODUCT SERVICE] Liste produits marketplace {} par {}", slug, userEmail);
+        log.info("🔍 [PRODUCT SERVICE] User email: {}", userEmail);
+        // TODO: Ajouter vérification des permissions EDITOR/OWNER ici plus tard
+        List<ProductDto> products = listByMarketplaceSlug(slug);
+        log.info("✅ [PRODUCT SERVICE] {} produits récupérés pour {}", products.size(), userEmail);
+        return products;
+    }
+
+    public Long countByMarketplaceSlug(String slug, String userEmail) {
+        log.info("🔍 [PRODUCT SERVICE] Comptage produits marketplace {} par {}", slug, userEmail);
+        // TODO: Ajouter vérification des permissions EDITOR/OWNER ici plus tard
+        return countByMarketplaceSlug(slug);
+    }
+
+    public ProductDto storePhoto(Long id, MultipartFile file, String userEmail) throws IOException {
+        log.info("🔍 [PRODUCT SERVICE] Upload photo produit {} par {}", id, userEmail);
+        // TODO: Ajouter vérification des permissions EDITOR/OWNER ici plus tard
+        return storePhoto(id, file);
     }
 
     private ProductDto toDto(Product p) {
@@ -126,22 +166,6 @@ public class ProductService {
                 .marketplaceSlug(p.getMarketplace().getSlug())
                 .build();
     }
-
-    /**
-     * Sauvegarde le fichier et met à jour le champ photo (filename) de l’entité.
-     */
-//    @Transactional
-//    public ProductDto storePhoto(Long id, MultipartFile file) throws IOException {
-//        Product p = productRepository.findById(id)
-//                .orElseThrow(() -> new EntityNotFoundException("Produit introuvable"));
-//        Files.createDirectories(uploadDir);
-//        String filename = UUID.randomUUID() + "-" + file.getOriginalFilename();
-//        Path target = uploadDir.resolve(filename);
-//        file.transferTo(target);
-//        p.setPhoto(filename);
-//        productRepository.save(p);
-//        return ProductDto.fromEntity(p);
-//    }
 
     @Transactional
     public ProductDto storePhoto(Long id, MultipartFile file) throws IOException {
@@ -202,5 +226,4 @@ public class ProductService {
             throw new RuntimeException("URL invalide pour le fichier: " + filename, e);
         }
     }
-
 }
