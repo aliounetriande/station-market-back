@@ -101,11 +101,17 @@ public class SecurityConfig {
                         .requestMatchers("/stationmarket/auth/profile").authenticated()
 
                         //  INVITATIONS : Endpoints PUBLICS d'abord (plus spécifiques)
-                        .requestMatchers("/api/invitations/validate-token").permitAll()        // ✅ AJOUTÉ
-                        .requestMatchers("/api/invitations/accept-invitation").permitAll()     // ✅ AJOUTÉ
+                        .requestMatchers("/api/invitations/validate-token").permitAll()
+                        .requestMatchers("/api/invitations/accept-invitation").permitAll()
                         .requestMatchers("/api/invitations/validate/**").permitAll()
                         .requestMatchers("/api/invitations/accept-complete").permitAll()
                         .requestMatchers("/api/invitations/accept").permitAll()
+
+                        // ✅ PAIEMENTS : Endpoints PUBLICS
+                        .requestMatchers("/api/payments/test-config").permitAll()
+                        .requestMatchers("/api/payments/ligdicash/create-invoice").permitAll()
+                        .requestMatchers("/api/payments/ligdicash/confirm/**").permitAll()
+                        .requestMatchers("/api/payments/ligdicash/callback").permitAll()
 
                         //  INVITATIONS : Endpoints PROTÉGÉS ensuite (moins spécifiques)
                         .requestMatchers("/api/invitations/marketplace/**").hasAuthority("ROLE_VENDOR")
