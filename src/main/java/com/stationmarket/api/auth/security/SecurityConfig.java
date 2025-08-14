@@ -101,6 +101,8 @@ public class SecurityConfig {
                         .requestMatchers("/stationmarket/auth/profile").authenticated()
 
                         //  INVITATIONS : Endpoints PUBLICS d'abord (plus spécifiques)
+                        .requestMatchers("/api/invitations/validate-token").permitAll()        // ✅ AJOUTÉ
+                        .requestMatchers("/api/invitations/accept-invitation").permitAll()     // ✅ AJOUTÉ
                         .requestMatchers("/api/invitations/validate/**").permitAll()
                         .requestMatchers("/api/invitations/accept-complete").permitAll()
                         .requestMatchers("/api/invitations/accept").permitAll()
