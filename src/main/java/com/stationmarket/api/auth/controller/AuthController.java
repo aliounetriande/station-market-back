@@ -13,7 +13,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -33,8 +35,18 @@ public class AuthController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<JwtResponse> login(@RequestBody LoginRequest req) {
-        return ResponseEntity.ok(authService.authenticate(req));
+    public ResponseEntity<?> login(@RequestBody LoginRequest req) {
+        try {
+            return ResponseEntity.ok(authService.authenticate(req));
+        } catch (UsernameNotFoundException e) {
+            // Utilisateur non trouvé
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("code", "USER_NOT_FOUND", "message", "Compte inexistant"));
+        } catch (BadCredentialsException e) {
+            // Mauvais mot de passe
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("code", "BAD_CREDENTIALS", "message", "Email ou mot de passe incorrect"));
+        }
     }
 
     @PostMapping("/register")
