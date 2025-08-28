@@ -1,14 +1,21 @@
 package com.stationmarket.api.payments.controller;
 
+import com.stationmarket.api.order.model.Order;
 import com.stationmarket.api.payments.config.LigdicashProperties;
 import com.stationmarket.api.payments.dto.*;
+import com.stationmarket.api.payments.model.PaymentIntent;
+import com.stationmarket.api.payments.repository.PaymentIntentRepository;
 import com.stationmarket.api.payments.service.LigdicashService;
+import com.stationmarket.api.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.math.BigDecimal;
 import java.util.Map;
 
 @Slf4j
@@ -19,6 +26,7 @@ import java.util.Map;
 public class PaymentController {
 
     private final LigdicashService ligdicashService;
+    private final OrderService orderService;
     private final LigdicashProperties ligdicashProperties;
 
     /**
@@ -48,6 +56,10 @@ public class PaymentController {
     /**
      * Créer une facture Ligdicash
      */
+
+    @Autowired
+    private PaymentIntentRepository paymentIntentRepository;
+
     @PostMapping("/ligdicash/create-invoice")
     public ResponseEntity<LigdicashInvoiceResponse> createInvoice(@RequestBody LigdicashInvoiceRequest request) {
         // ✅ CORRECTION : Accès direct aux données
@@ -55,7 +67,23 @@ public class PaymentController {
                 request.getInvoice().getTotalAmount());
 
         try {
-            // ✅ DIRECT : Plus besoin de conversion, passer directement la requête
+            // Récupère les infos utiles
+            String orderId = (String) request.getCustomData().get("order_id");
+            String marketplaceSlug = (String) request.getCustomData().get("marketplace_slug");
+            log.info("marketplaceSlug reçu dans createInvoice: {}", marketplaceSlug);
+            String userEmail = (String) request.getCustomData().get("user_email");
+            Integer amount = request.getInvoice().getTotalAmount();
+
+            // Sauvegarde le mapping temporaire
+            PaymentIntent intent = PaymentIntent.builder()
+                    .orderId(orderId)
+                    .marketplaceSlug(marketplaceSlug)
+                    .userEmail(userEmail)
+                    .amount(amount)
+                    .status("PENDING")
+                    .build();
+            paymentIntentRepository.save(intent);
+
             LigdicashInvoiceResponse response = ligdicashService.createInvoice(request);
 
             log.info("✅ [PAYMENT API] Facture traitée - Code: {}", response.getResponseCode());
@@ -77,6 +105,7 @@ public class PaymentController {
     /**
      * Confirmer le statut d'un paiement
      */
+    // ...existing code...
     @GetMapping("/ligdicash/confirm/{token}")
     public ResponseEntity<LigdicashConfirmResponse> confirmPayment(@PathVariable String token) {
         log.info("🔍 [PAYMENT API] Vérification paiement - Token: {}",
@@ -87,6 +116,45 @@ public class PaymentController {
 
             log.info("✅ [PAYMENT API] Statut vérifié - Code: {}, Status: {}",
                     response.getResponseCode(), response.getStatus());
+
+            // Ajout : Création de la commande si paiement valide
+
+            if ("completed".equalsIgnoreCase(response.getStatus())) {
+                String orderId = null;
+                String transactionIdFromLigdicash = null;
+
+                if (response.getCustomData() != null) {
+                    for (var cd : response.getCustomData()) {
+                        if ("order_id".equals(cd.getKeyOfCustomData())) {
+                            orderId = cd.getValueOfCustomData();
+                        }
+                        if ("transaction_id".equals(cd.getKeyOfCustomData())) { // <-- Récupère le transaction_id
+                            transactionIdFromLigdicash = cd.getValueOfCustomData();
+                        }
+                    }
+                }
+
+                if (orderId != null) {
+                    PaymentIntent intent = paymentIntentRepository.findById(orderId).orElse(null);
+                    if (intent != null) {
+                        // Création de la commande
+                        Order order = new Order();
+                        order.setMarketplaceSlug(intent.getMarketplaceSlug());
+                        order.setAmount(new BigDecimal(intent.getAmount()));
+                        order.setStatus("PAID");
+                        order.setUserEmail(intent.getUserEmail());
+                        order.setTransactionId(transactionIdFromLigdicash);
+                        order.setCreatedAt(java.time.LocalDateTime.now());
+                        orderService.save(order);
+
+                        // Mets à jour le statut du PaymentIntent si besoin
+                        intent.setStatus("PAID");
+                        paymentIntentRepository.save(intent);
+                    } else {
+                        log.warn("❌ Impossible de retrouver le mapping PaymentIntent pour orderId={}", orderId);
+                    }
+                }
+            }
 
             return ResponseEntity.ok(response);
 
@@ -103,7 +171,7 @@ public class PaymentController {
             return ResponseEntity.status(500).body(errorResponse);
         }
     }
-
+// ...existing code...
     /**
      * Callback de Ligdicash (webhook)
      */
@@ -124,7 +192,21 @@ public class PaymentController {
 
             if ("completed".equals(status)) {
                 log.info("✅ [PAYMENT CALLBACK] Paiement confirmé par callback");
-                // TODO: Finaliser la commande
+
+                // Exemple de récupération des infos (à adapter selon ton payload)
+                String marketplaceSlug = (String) payload.get("marketplace_slug");
+                BigDecimal amount = new BigDecimal(payload.get("amount").toString());
+                String userEmail = (String) payload.get("user_email");
+
+                // Crée une nouvelle commande
+                Order order = new Order();
+                order.setMarketplaceSlug(marketplaceSlug);
+                order.setAmount(amount);
+                order.setStatus("PAID");
+                order.setUserEmail(userEmail);
+                // ... autres champs nécessaires
+
+                orderService.save(order); // Ajoute cette méthode dans OrderService si besoin
             } else {
                 log.warn("⚠️ [PAYMENT CALLBACK] Paiement non confirmé: {}", status);
             }

@@ -122,6 +122,10 @@ public class SecurityConfig {
                         .requestMatchers("/stationmarket/vendor/marketplaces/*").hasAuthority("ROLE_VENDOR")
                         .requestMatchers("/api/vendors/setup").hasAuthority("ROLE_VENDOR")
                         .requestMatchers("/api/vendors/me"   ).hasAuthority("ROLE_VENDOR")
+                        .requestMatchers("/api/marketplaces/*/orders").hasAuthority("ROLE_VENDOR")
+                        .requestMatchers("/api/marketplaces/*/balance").hasAuthority("ROLE_VENDOR")
+
+
 
                         // tout le reste exige authentification
                         .anyRequest().authenticated()
