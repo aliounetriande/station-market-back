@@ -125,6 +125,16 @@ public class SecurityConfig {
                         .requestMatchers("/api/marketplaces/*/orders").hasAuthority("ROLE_VENDOR")
                         .requestMatchers("/api/marketplaces/*/balance").hasAuthority("ROLE_VENDOR")
 
+                        // accès RETRAIT
+                        // --- ADMIN ---
+                        .requestMatchers("/api/withdrawals/count/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/withdrawals/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/api/withdrawals/status/**").hasAuthority("ROLE_ADMIN")
+
+                        // --- VENDOR ---
+                        .requestMatchers(HttpMethod.POST, "/api/withdrawals").hasAuthority("ROLE_VENDOR")
+                        .requestMatchers("/api/withdrawals/vendor/**").hasAuthority("ROLE_VENDOR")
+                        .requestMatchers("/api/withdrawals/marketplace/**").hasAuthority("ROLE_VENDOR")
 
 
                         // tout le reste exige authentification
