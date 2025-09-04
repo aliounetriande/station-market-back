@@ -16,6 +16,13 @@ public class Withdrawal {
     private String marketplaceSlug;     // Lien avec la marketplace
     private BigDecimal amount;
     private String status;              // PENDING, PAID, REJECTED
+    private String paymentMethod; // "BANK", "OM", "MOOV"
+    private String bankName;
+    private String bankAccountNumber;
+    private String bankAccountHolder;
+    private String mobileOperator; // "OM" ou "MOOV"
+    private String mobileNumber;
+    private String accountHolder;
     private LocalDateTime requestedAt;
     private LocalDateTime processedAt;
 }

@@ -14,6 +14,12 @@ public class WithdrawalController {
     @Autowired
     private WithdrawalService withdrawalService;
 
+    @GetMapping
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public List<Withdrawal> getAllWithdrawals() {
+        return withdrawalService.getAllWithdrawals();
+    }
+
     @PostMapping
     public Withdrawal requestWithdrawal(@RequestBody Withdrawal withdrawal) {
         return withdrawalService.requestWithdrawal(withdrawal);

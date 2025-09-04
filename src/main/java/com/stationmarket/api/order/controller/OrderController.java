@@ -1,13 +1,13 @@
 package com.stationmarket.api.order.controller;
 
+import com.stationmarket.api.order.dto.OrderRevenusStatsDTO;
+import com.stationmarket.api.order.dto.OrderStatsDTO;
 import com.stationmarket.api.order.model.Order;
 import com.stationmarket.api.order.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -28,5 +28,29 @@ public class OrderController {
     @PreAuthorize("hasAuthority('ROLE_VENDOR')")
     public BigDecimal getBalance(@PathVariable String slug) {
         return orderService.getMarketplaceBalance(slug);
+    }
+
+    @GetMapping("/{slug}/orders/count")
+    @PreAuthorize("hasAuthority('ROLE_VENDOR')")
+    public long countOrders(@PathVariable String slug) {
+        return orderService.countOrdersByMarketplace(slug);
+    }
+
+    @GetMapping("/{slug}/orders/stats")
+    @PreAuthorize("hasAuthority('ROLE_VENDOR')")
+    public List<OrderStatsDTO> getOrderStats(
+            @PathVariable String slug,
+            @RequestParam String period // "year", "month", "week"
+    ) {
+        return orderService.getOrderStats(slug, period);
+    }
+
+    @GetMapping("/{slug}/orders/revenus-stats")
+    @PreAuthorize("hasAuthority('ROLE_VENDOR')")
+    public List<OrderRevenusStatsDTO> getOrderRevenusStats(
+            @PathVariable String slug,
+            @RequestParam String period // "year", "month", "week"
+    ) {
+        return orderService.getOrderRevenusStats(slug, period);
     }
 }

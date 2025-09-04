@@ -11,6 +11,11 @@ import java.util.List;
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByMarketplaceSlugAndStatus(String slug, String status);
 
-    @Query("SELECT COALESCE(SUM(o.amount), 0) FROM Order o WHERE o.marketplaceSlug = :slug AND o.status = :status")
-    BigDecimal sumAmountByMarketplaceSlugAndStatus(@Param("slug") String slug, @Param("status") String status);
+    @Query("SELECT SUM(o.amount) FROM Order o WHERE o.marketplaceSlug = :marketplaceSlug AND o.status = :status")
+    BigDecimal sumAmountByMarketplaceSlugAndStatus(String marketplaceSlug, String status);
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.marketplaceSlug = :marketplaceSlug")
+    Long countByMarketplaceSlug(@Param("marketplaceSlug") String marketplaceSlug);
+
+    List<Order> findByMarketplaceSlug(String slug);
 }

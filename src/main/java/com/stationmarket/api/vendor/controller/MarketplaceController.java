@@ -10,6 +10,7 @@ import com.stationmarket.api.vendor.service.VendorService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -18,6 +19,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +32,11 @@ public class MarketplaceController {
 
     private final MarketplaceService marketplaceService;
     private final VendorService vendorService;
+
+    @Autowired
+    private com.stationmarket.api.order.service.OrderService orderService;
+    @Autowired
+    private com.stationmarket.api.withdrawal.repository.WithdrawalRepository withdrawalRepository;
 
     // Vérification du rôle via @PreAuthorize (ROLE_VENDOR)
     @PreAuthorize("hasAuthority('ROLE_VENDOR')")
@@ -221,6 +228,7 @@ public class MarketplaceController {
         }
         return ResponseEntity.ok(dtos);
     }
+
 
 
 /**
