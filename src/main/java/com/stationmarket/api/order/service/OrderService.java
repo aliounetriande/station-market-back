@@ -11,8 +11,10 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.WeekFields;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -50,54 +52,66 @@ public class OrderService {
 
 
 
-        public List<OrderStatsDTO> getOrderStats(String slug, String period) {
-            List<Order> orders = orderRepository.findByMarketplaceSlug(slug);
+    public List<OrderStatsDTO> getOrderStats(String slug, String period) {
+        List<Order> orders = orderRepository.findByMarketplaceSlug(slug);
 
-            Map<String, Long> stats = new LinkedHashMap<>();
-            DateTimeFormatter formatter;
+        Map<String, Long> stats = new LinkedHashMap<>();
+        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.FRENCH);
 
+        for (Order order : orders) {
+            LocalDate date = order.getCreatedAt().toLocalDate();
+            String label;
             switch (period) {
                 case "year":
-                    formatter = DateTimeFormatter.ofPattern("yyyy");
+                    label = String.valueOf(date.getYear());
                     break;
                 case "month":
-                    formatter = DateTimeFormatter.ofPattern("yyyy-MM");
+                    label = date.format(monthFormatter);
+                    label = label.substring(0, 1).toUpperCase() + label.substring(1); // Majuscule
                     break;
                 case "week":
-                    formatter = DateTimeFormatter.ofPattern("YYYY-'W'ww"); // ISO week
+                    int week = date.get(WeekFields.of(Locale.FRENCH).weekOfWeekBasedYear());
+                    label = "Semaine " + week + " " + date.getYear();
                     break;
                 default:
-                    formatter = DateTimeFormatter.ofPattern("yyyy-MM");
+                    label = date.format(monthFormatter);
+                    label = label.substring(0, 1).toUpperCase() + label.substring(1);
             }
-
-            for (Order order : orders) {
-                LocalDate date = order.getCreatedAt().toLocalDate();
-                String label = date.format(formatter);
-                stats.put(label, stats.getOrDefault(label, 0L) + 1);
-            }
-
-            return stats.entrySet().stream()
-                    .map(e -> new OrderStatsDTO(e.getKey(), e.getValue()))
-                    .collect(Collectors.toList());
+            stats.put(label, stats.getOrDefault(label, 0L) + 1);
         }
+
+        return stats.entrySet().stream()
+                .map(e -> new OrderStatsDTO(e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
+    }
 
 
     public List<OrderRevenusStatsDTO> getOrderRevenusStats(String slug, String period) {
         List<Order> orders = orderRepository.findByMarketplaceSlug(slug);
 
         Map<String, BigDecimal> stats = new LinkedHashMap<>();
-        DateTimeFormatter formatter;
-        switch (period) {
-            case "year": formatter = DateTimeFormatter.ofPattern("yyyy"); break;
-            case "month": formatter = DateTimeFormatter.ofPattern("yyyy-MM"); break;
-            case "week": formatter = DateTimeFormatter.ofPattern("YYYY-'W'ww"); break;
-            default: formatter = DateTimeFormatter.ofPattern("yyyy-MM");
-        }
+        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.FRENCH);
 
         for (Order order : orders) {
             LocalDate date = order.getCreatedAt().toLocalDate();
-            String label = date.format(formatter);
-            BigDecimal amount = order.getAmount(); // ou getAmount()
+            String label;
+            switch (period) {
+                case "year":
+                    label = String.valueOf(date.getYear());
+                    break;
+                case "month":
+                    label = date.format(monthFormatter);
+                    label = label.substring(0, 1).toUpperCase() + label.substring(1); // Majuscule
+                    break;
+                case "week":
+                    int week = date.get(WeekFields.of(Locale.FRENCH).weekOfWeekBasedYear());
+                    label = "Semaine " + week + " " + date.getYear();
+                    break;
+                default:
+                    label = date.format(monthFormatter);
+                    label = label.substring(0, 1).toUpperCase() + label.substring(1);
+            }
+            BigDecimal amount = order.getAmount();
             stats.put(label, stats.getOrDefault(label, BigDecimal.ZERO).add(amount));
         }
 
