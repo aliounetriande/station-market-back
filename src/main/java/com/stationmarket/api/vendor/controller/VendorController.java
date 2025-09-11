@@ -1,14 +1,21 @@
 package com.stationmarket.api.vendor.controller;
 
+import com.stationmarket.api.auth.model.Role;
+import com.stationmarket.api.auth.model.User;
+import com.stationmarket.api.auth.repository.RoleRepository;
+import com.stationmarket.api.auth.repository.UserRepository;
 import com.stationmarket.api.vendor.dto.VendorDto;
 import com.stationmarket.api.vendor.dto.VendorSetupDto;
 import com.stationmarket.api.vendor.dto.VendorUpdateDto;
 import com.stationmarket.api.vendor.model.Vendor;
+import com.stationmarket.api.vendor.repository.VendorRepository;
 import com.stationmarket.api.vendor.service.VendorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -18,6 +25,10 @@ import jakarta.validation.Valid;
 @RequiredArgsConstructor
 public class VendorController {
     private final VendorService vendorService;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final VendorRepository vendorRepository;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * Appelé après login et confirmation email, pour créer l’entité Vendor.
@@ -60,5 +71,7 @@ public class VendorController {
         VendorDto updated = vendorService.updateVendor(email, dto);
         return ResponseEntity.ok(updated);
     }
+
+
 
 }

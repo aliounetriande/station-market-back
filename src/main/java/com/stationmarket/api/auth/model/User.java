@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.Instant;
 import java.util.Set;
+import com.stationmarket.api.auth.model.Status;
 
 @Entity
 @Table(name = "users")

@@ -16,4 +16,11 @@ public class PaymentIntent {
     private String userEmail;
     private Integer amount;
     private String status; // "PENDING", "PAID", etc.
+
+    private Double deliveryLat;
+    private Double deliveryLng;
+    private String deliveryAddress;
+    private String deliveryMode;
+    private String firstName;
+    private String lastName;
 }

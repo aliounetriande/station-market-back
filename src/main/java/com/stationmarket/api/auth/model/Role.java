@@ -17,6 +17,7 @@ public class Role {
     public enum RoleName {
         ROLE_ADMIN,
         ROLE_VENDOR,
+        ROLE_DELIVERY,
         ROLE_CUSTOMER
     }
 }

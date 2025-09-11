@@ -62,6 +62,7 @@ public class PaymentController {
 
     @PostMapping("/ligdicash/create-invoice")
     public ResponseEntity<LigdicashInvoiceResponse> createInvoice(@RequestBody LigdicashInvoiceRequest request) {
+        log.info("CustomData reçu: {}", request.getCustomData());
         // ✅ CORRECTION : Accès direct aux données
         log.info("💳 [PAYMENT API] Création facture - Total: {} FCFA",
                 request.getInvoice().getTotalAmount());
@@ -81,6 +82,12 @@ public class PaymentController {
                     .userEmail(userEmail)
                     .amount(amount)
                     .status("PENDING")
+                    .deliveryLat((Double) request.getCustomData().get("deliveryLat"))
+                    .deliveryLng((Double) request.getCustomData().get("deliveryLng"))
+                    .deliveryAddress((String) request.getCustomData().get("deliveryAddress"))
+                    .deliveryMode((String) request.getCustomData().get("deliveryMode"))
+                    .firstName((String) request.getCustomData().get("firstName"))
+                    .lastName((String) request.getCustomData().get("lastName"))
                     .build();
             paymentIntentRepository.save(intent);
 
@@ -143,6 +150,10 @@ public class PaymentController {
                         order.setAmount(new BigDecimal(intent.getAmount()));
                         order.setStatus("PAID");
                         order.setUserEmail(intent.getUserEmail());
+                        order.setDeliveryLat(intent.getDeliveryLat());
+                        order.setDeliveryLng(intent.getDeliveryLng());
+                        order.setDeliveryAddress(intent.getDeliveryAddress());
+                        order.setDeliveryMode(intent.getDeliveryMode());
                         order.setTransactionId(transactionIdFromLigdicash);
                         order.setCreatedAt(java.time.LocalDateTime.now());
                         orderService.save(order);
@@ -170,6 +181,7 @@ public class PaymentController {
 
             return ResponseEntity.status(500).body(errorResponse);
         }
+
     }
 // ...existing code...
     /**
@@ -187,6 +199,7 @@ public class PaymentController {
         try {
             String status = (String) payload.get("status");
             String transactionId = (String) payload.get("transaction_id");
+            String orderId = (String) payload.get("order_id");
 
             log.info("📞 [PAYMENT CALLBACK] Transaction: {} - Status: {}", transactionId, status);
 
@@ -198,13 +211,31 @@ public class PaymentController {
                 BigDecimal amount = new BigDecimal(payload.get("amount").toString());
                 String userEmail = (String) payload.get("user_email");
 
-                // Crée une nouvelle commande
+                // Récupère le PaymentIntent pour avoir la localisation
+                PaymentIntent intent = null;
+                if (orderId != null) {
+                    intent = paymentIntentRepository.findById(orderId).orElse(null);
+                }
+
                 Order order = new Order();
-                order.setMarketplaceSlug(marketplaceSlug);
-                order.setAmount(amount);
-                order.setStatus("PAID");
-                order.setUserEmail(userEmail);
-                // ... autres champs nécessaires
+                if (intent != null) {
+                    order.setMarketplaceSlug(intent.getMarketplaceSlug());
+                    order.setAmount(new BigDecimal(intent.getAmount()));
+                    order.setStatus("PAID");
+                    order.setUserEmail(intent.getUserEmail());
+                    order.setDeliveryLat(intent.getDeliveryLat());
+                    order.setDeliveryLng(intent.getDeliveryLng());
+                    order.setDeliveryAddress(intent.getDeliveryAddress());
+                    order.setDeliveryMode(intent.getDeliveryMode());
+                } else {
+                    // fallback si pas de PaymentIntent
+                    order.setMarketplaceSlug((String) payload.get("marketplace_slug"));
+                    order.setAmount(new BigDecimal(payload.get("amount").toString()));
+                    order.setStatus("PAID");
+                    order.setUserEmail((String) payload.get("user_email"));
+                }
+                order.setTransactionId(transactionId);
+                order.setCreatedAt(java.time.LocalDateTime.now());
 
                 orderService.save(order); // Ajoute cette méthode dans OrderService si besoin
             } else {
