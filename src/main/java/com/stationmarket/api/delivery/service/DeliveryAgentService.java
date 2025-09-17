@@ -5,6 +5,7 @@ import com.stationmarket.api.auth.model.User;
 import com.stationmarket.api.auth.model.Status;
 import com.stationmarket.api.auth.repository.RoleRepository;
 import com.stationmarket.api.auth.repository.UserRepository;
+import com.stationmarket.api.delivery.dto.DeliveryAgentProfileDto;
 import com.stationmarket.api.delivery.dto.UpdateDeliveryAgentDto;
 import com.stationmarket.api.delivery.model.DeliveryAgent;
 import com.stationmarket.api.delivery.repository.DeliveryAgentRepository;
@@ -89,5 +90,17 @@ public class DeliveryAgentService {
             // Puis supprime le User associé
             userRepository.delete(agent.getUser());
         }
+    }
+
+    public DeliveryAgentProfileDto getProfileByEmail(String email) {
+        DeliveryAgent agent = deliveryAgentRepository.findByUserEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Livreur introuvable"));
+        DeliveryAgentProfileDto dto = new DeliveryAgentProfileDto();
+        dto.setName(agent.getUser().getName());
+        dto.setEmail(agent.getUser().getEmail());
+        dto.setPhone(agent.getUser().getPhone());
+        dto.setAddress(agent.getUser().getAddress());
+        dto.setMarketplaceName(agent.getMarketplace().getMarketName());
+        return dto;
     }
 }

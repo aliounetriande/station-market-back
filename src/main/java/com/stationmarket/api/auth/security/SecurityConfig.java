@@ -137,7 +137,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/withdrawals/vendor/**").hasAuthority("ROLE_VENDOR")
                         .requestMatchers("/api/withdrawals/marketplace/**").hasAuthority("ROLE_VENDOR")
 
-
+                        //----DELIVERY AGENT--------
+                        .requestMatchers("/api/delivery-agents/me").hasAuthority("ROLE_DELIVERY")
 
                         // tout le reste exige authentification
                         .anyRequest().authenticated()
