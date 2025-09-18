@@ -150,6 +150,8 @@ public class PaymentController {
                         order.setAmount(new BigDecimal(intent.getAmount()));
                         order.setStatus("PAID");
                         order.setUserEmail(intent.getUserEmail());
+                        order.setFirstName(intent.getFirstName());
+                        order.setLastName(intent.getLastName());
                         order.setDeliveryLat(intent.getDeliveryLat());
                         order.setDeliveryLng(intent.getDeliveryLng());
                         order.setDeliveryAddress(intent.getDeliveryAddress());
@@ -223,6 +225,8 @@ public class PaymentController {
                     order.setAmount(new BigDecimal(intent.getAmount()));
                     order.setStatus("PAID");
                     order.setUserEmail(intent.getUserEmail());
+                    order.setFirstName(intent.getFirstName());
+                    order.setLastName(intent.getLastName());
                     order.setDeliveryLat(intent.getDeliveryLat());
                     order.setDeliveryLng(intent.getDeliveryLng());
                     order.setDeliveryAddress(intent.getDeliveryAddress());

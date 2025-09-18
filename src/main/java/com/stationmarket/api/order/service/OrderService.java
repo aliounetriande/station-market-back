@@ -45,6 +45,11 @@ public class OrderService {
     }
 
     public Order save(Order order) {
+        // Si la commande est en livraison, on initialise le statut de livraison à "UNDONE"
+        if ("DELIVERY".equalsIgnoreCase(order.getDeliveryMode())) {
+            order.setDeliveryStatus("UNDONE");
+        }
+        // Tu peux aussi initialiser à null ou "" si ce n'est pas une livraison
         return orderRepository.save(order);
     }
 
@@ -118,6 +123,10 @@ public class OrderService {
         return stats.entrySet().stream()
                 .map(e -> new OrderRevenusStatsDTO(e.getKey(), e.getValue()))
                 .collect(Collectors.toList());
+    }
+
+    public List<Order> getOrdersByMarketplaceAndDeliveryStatus(String slug, String deliveryStatus) {
+        return orderRepository.findByMarketplaceSlugAndDeliveryStatus(slug, deliveryStatus);
     }
 
     }

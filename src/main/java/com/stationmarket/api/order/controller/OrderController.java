@@ -53,4 +53,13 @@ public class OrderController {
     ) {
         return orderService.getOrderRevenusStats(slug, period);
     }
+
+    @GetMapping("/orders/delivery-status")
+    @PreAuthorize("hasAuthority('ROLE_DELIVERY')")
+    public List<Order> getOrdersByDeliveryStatus(
+            @RequestParam String marketplaceSlug,
+            @RequestParam String status
+    ) {
+        return orderService.getOrdersByMarketplaceAndDeliveryStatus(marketplaceSlug, status);
+    }
 }

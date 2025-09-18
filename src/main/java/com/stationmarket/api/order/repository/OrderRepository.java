@@ -18,4 +18,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Long countByMarketplaceSlug(@Param("marketplaceSlug") String marketplaceSlug);
 
     List<Order> findByMarketplaceSlug(String slug);
+
+    List<Order> findByMarketplaceSlugAndDeliveryStatus(String marketplaceSlug, String deliveryStatus);
 }

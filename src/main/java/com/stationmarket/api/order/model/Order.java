@@ -23,10 +23,13 @@ public class Order {
     private String status; // "PAID" pour validée
     private BigDecimal amount;
     private String userEmail;
+    private String firstName;
+    private String lastName;
     private Double deliveryLat;
     private Double deliveryLng;
     private String deliveryAddress;
     private String deliveryMode; // "DELIVERY" ou "PICKUP"
+    private String deliveryStatus; // "UNDONE", "IN_PROGRESS", "DELIVERED"
     private String transactionId; // ou le nom réel du champ
     private LocalDateTime createdAt;
 }
