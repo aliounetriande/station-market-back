@@ -140,6 +140,7 @@ public class SecurityConfig {
                         //----DELIVERY AGENT--------
                         .requestMatchers("/api/delivery-agents/me").hasAuthority("ROLE_DELIVERY")
                         .requestMatchers("/api/marketplaces/orders/delivery-status").hasAuthority("ROLE_DELIVERY")
+                        .requestMatchers(HttpMethod.PATCH, "/api/marketplaces/*/orders/*/delivery-status").hasAuthority("ROLE_DELIVERY")
 
                         // tout le reste exige authentification
                         .anyRequest().authenticated()

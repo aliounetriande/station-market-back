@@ -5,6 +5,7 @@ import com.stationmarket.api.order.dto.OrderStatsDTO;
 import com.stationmarket.api.order.model.Order;
 import com.stationmarket.api.order.repository.OrderRepository;
 import com.stationmarket.api.withdrawal.repository.WithdrawalRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -127,6 +128,23 @@ public class OrderService {
 
     public List<Order> getOrdersByMarketplaceAndDeliveryStatus(String slug, String deliveryStatus) {
         return orderRepository.findByMarketplaceSlugAndDeliveryStatus(slug, deliveryStatus);
+    }
+
+    public Order getOrderByMarketplaceAndDeliveryStatusAndId(String slug, String deliveryStatus, Long id) {
+        return orderRepository.findByMarketplaceSlugAndDeliveryStatusAndId(slug, deliveryStatus, id)
+                .orElseThrow(() -> new EntityNotFoundException("Order not found"));
+    }
+
+    public Order getOrderByMarketplaceAndId(String slug, Long id) {
+        return orderRepository.findByMarketplaceSlugAndId(slug, id)
+                .orElseThrow(() -> new EntityNotFoundException("Order not found"));
+    }
+
+    public Order updateDeliveryStatus(String slug, Long id, String newStatus) {
+        Order order = orderRepository.findByMarketplaceSlugAndId(slug, id)
+                .orElseThrow(() -> new EntityNotFoundException("Order not found"));
+        order.setDeliveryStatus(newStatus);
+        return orderRepository.save(order);
     }
 
     }

@@ -15,7 +15,7 @@ public class Customer {
     @JoinColumn(name = "user_id", unique = true)
     private User user;
 
-    private String phone;
+    private String phoneNumb;
     private String address;
 }
 

@@ -73,6 +73,7 @@ public class PaymentController {
             String marketplaceSlug = (String) request.getCustomData().get("marketplace_slug");
             log.info("marketplaceSlug reçu dans createInvoice: {}", marketplaceSlug);
             String userEmail = (String) request.getCustomData().get("user_email");
+            String phoneNumb = (String) request.getCustomData().get("phoneNumb");
             Integer amount = request.getInvoice().getTotalAmount();
 
             // Sauvegarde le mapping temporaire
@@ -80,6 +81,7 @@ public class PaymentController {
                     .orderId(orderId)
                     .marketplaceSlug(marketplaceSlug)
                     .userEmail(userEmail)
+                    .phoneNumb(phoneNumb)
                     .amount(amount)
                     .status("PENDING")
                     .deliveryLat((Double) request.getCustomData().get("deliveryLat"))
@@ -88,6 +90,7 @@ public class PaymentController {
                     .deliveryMode((String) request.getCustomData().get("deliveryMode"))
                     .firstName((String) request.getCustomData().get("firstName"))
                     .lastName((String) request.getCustomData().get("lastName"))
+
                     .build();
             paymentIntentRepository.save(intent);
 
@@ -151,6 +154,7 @@ public class PaymentController {
                         order.setStatus("PAID");
                         order.setUserEmail(intent.getUserEmail());
                         order.setFirstName(intent.getFirstName());
+                        order.setPhoneNumb(intent.getPhoneNumb());
                         order.setLastName(intent.getLastName());
                         order.setDeliveryLat(intent.getDeliveryLat());
                         order.setDeliveryLng(intent.getDeliveryLng());
@@ -227,6 +231,7 @@ public class PaymentController {
                     order.setUserEmail(intent.getUserEmail());
                     order.setFirstName(intent.getFirstName());
                     order.setLastName(intent.getLastName());
+                    order.setPhoneNumb(intent.getPhoneNumb());
                     order.setDeliveryLat(intent.getDeliveryLat());
                     order.setDeliveryLng(intent.getDeliveryLng());
                     order.setDeliveryAddress(intent.getDeliveryAddress());

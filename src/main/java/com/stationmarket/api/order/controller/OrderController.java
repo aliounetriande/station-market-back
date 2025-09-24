@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/marketplaces")
@@ -61,5 +62,35 @@ public class OrderController {
             @RequestParam String status
     ) {
         return orderService.getOrdersByMarketplaceAndDeliveryStatus(marketplaceSlug, status);
+    }
+
+    @GetMapping("/orders/delivery-status/{id}")
+    @PreAuthorize("hasAuthority('ROLE_DELIVERY')")
+    public Order getOrderByDeliveryStatusAndMarketplace(
+            @RequestParam String marketplaceSlug,
+            @RequestParam String status,
+            @PathVariable Long id
+    ) {
+        return orderService.getOrderByMarketplaceAndDeliveryStatusAndId(marketplaceSlug, status, id);
+    }
+
+    @PatchMapping("/{slug}/orders/{id}/delivery-status")
+    @PreAuthorize("hasAuthority('ROLE_DELIVERY')")
+    public Order updateDeliveryStatus(
+            @PathVariable String slug,
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body
+    ) {
+        String newStatus = body.get("deliveryStatus");
+        return orderService.updateDeliveryStatus(slug, id, newStatus);
+    }
+
+    @GetMapping("/{slug}/orders/{id}")
+    @PreAuthorize("hasAuthority('ROLE_DELIVERY')")
+    public Order getOrderByMarketplaceAndId(
+            @PathVariable String slug,
+            @PathVariable Long id
+    ) {
+        return orderService.getOrderByMarketplaceAndId(slug, id);
     }
 }

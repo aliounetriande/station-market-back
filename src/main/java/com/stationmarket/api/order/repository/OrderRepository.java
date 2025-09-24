@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByMarketplaceSlugAndStatus(String slug, String status);
@@ -20,4 +21,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByMarketplaceSlug(String slug);
 
     List<Order> findByMarketplaceSlugAndDeliveryStatus(String marketplaceSlug, String deliveryStatus);
+
+    Optional<Order> findByMarketplaceSlugAndDeliveryStatusAndId(String marketplaceSlug, String deliveryStatus, Long id);
+
+    Optional<Order> findByMarketplaceSlugAndId(String marketplaceSlug, Long id);
+
 }

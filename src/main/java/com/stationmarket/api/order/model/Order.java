@@ -25,6 +25,7 @@ public class Order {
     private String userEmail;
     private String firstName;
     private String lastName;
+    private String phoneNumb;
     private Double deliveryLat;
     private Double deliveryLng;
     private String deliveryAddress;
