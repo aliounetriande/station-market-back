@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: station-market-back-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: station-market-back
+  template:
+    metadata:
+      labels:
+        app: station-market-back
+    spec:
+      containers:
+        - name: station-market-back
+          image: station-market-back:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: POSTGRES_DB
+              value: station_market
+            - name: POSTGRES_USER
+              value: sm_user
+            - name: POSTGRES_PASSWORD
+              value: sm_pass
+            - name: POSTGRES_HOST
+              value: postgres-service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: station-market-back-service
+spec:
+  selector:
+    app: station-market-back
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+  type: ClusterIP

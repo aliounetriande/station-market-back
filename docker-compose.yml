@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   db:
     image: postgres:15
@@ -9,6 +11,19 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+    image: station-market-back
+    ports:
+      - "8082:8082"
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/station_market
+      SPRING_DATASOURCE_USERNAME: sm_user
+      SPRING_DATASOURCE_PASSWORD: sm_pass
 
 volumes:
   pgdata:
