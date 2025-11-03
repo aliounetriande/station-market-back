@@ -15,11 +15,12 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Permettre l'origine du frontend Angular et du du mobile Ionic
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", "http://localhost:8100"));
-
-        // Permettre l'origine du mobile Ionic
-        //configuration.setAllowedOrigins(Arrays.asList("http://localhost:8100"));
+        // Permettre l'origine du frontend Angular et du domaine de production
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:4200", // Frontend local
+                "http://localhost:8100", // Mobile Ionic
+                "https://station-market.total-innovation.net" // Frontend en production
+        ));
 
         // Permettre toutes les méthodes HTTP
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
