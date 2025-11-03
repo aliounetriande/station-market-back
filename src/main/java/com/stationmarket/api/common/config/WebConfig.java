@@ -10,10 +10,13 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOriginPatterns("*") // Permettre tous les ports localhost
-                .allowedMethods("*")
-                .allowedHeaders("*")
-                .allowCredentials(false);
+                .allowedOrigins(
+                        "http://localhost:4200", // Frontend local
+                        "https://station-market.total-innovation.net" // Frontend en production
+                )
+                .allowedMethods("GET", "POST", "PUT", "DELETE") // Autoriser les méthodes nécessaires
+                .allowedHeaders("*") // Autoriser tous les en-têtes
+                .allowCredentials(true); // Activer les credentials si nécessaire
     }
 
     @Override

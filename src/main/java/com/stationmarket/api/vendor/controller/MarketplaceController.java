@@ -26,7 +26,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/stationmarket/vendor/marketplaces")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = {"http://localhost:4200", "https://station-market.total-innovation.net"})
 @RequiredArgsConstructor
 public class MarketplaceController {
 

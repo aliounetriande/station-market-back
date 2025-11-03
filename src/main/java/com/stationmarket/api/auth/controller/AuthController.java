@@ -25,7 +25,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/stationmarket/auth")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = {"http://localhost:4200", "https://station-market.total-innovation.net"})
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;

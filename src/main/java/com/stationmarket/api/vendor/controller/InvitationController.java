@@ -23,7 +23,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/invitations")
-@CrossOrigin(origins = "http://localhost:4200", allowedHeaders = "*")
+@CrossOrigin(origins = {"http://localhost:4200", "https://station-market.total-innovation.net"}, allowedHeaders = "*")
 public class InvitationController {
 
     private final InvitationService invitationService;
