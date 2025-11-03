@@ -17,8 +17,10 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+//import org.springframework.mail.SimpleMailMessage;
+//import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -41,7 +43,27 @@ public class AuthService {
     private final UserRepository userRepo;
     private final TokenRepository tokenRepo;
     private final PasswordEncoder encoder;
-    private final JavaMailSender mailSender;
+    //private final JavaMailSender mailSender;
+
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    private void sendWeSendEmail(String to, String subject, String content) {
+        String apiUrl = "https://api.wesend.io/v1/email/send";
+        String apiKey = "q0n_elf1m02aak1"; // Mets ta clé API ici
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("to", to);
+        body.put("subject", subject);
+        body.put("content", content);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + apiKey);
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+        restTemplate.postForEntity(apiUrl, request, String.class);
+    }
 
     @Value("${app.front-url}")
     private String frontUrl;
@@ -101,15 +123,12 @@ public class AuthService {
         tokenRepo.save(vToken);
 
         String link = frontUrl + "/stationmarket/auth/confirm?token=" + token;
-        SimpleMailMessage mail = new SimpleMailMessage();
-        mail.setTo(u.getEmail());
-        mail.setSubject("Activez votre compte Station Market");
-        mail.setText(
+        String mailContent =
                 "Bonjour " + u.getName() + ",\n\n" +
                         "Merci de cliquer sur ce lien pour activer votre compte STATION MARKET :\n" + link +
-                        "\n\nCe lien expire dans 24h."
-        );
-        mailSender.send(mail);
+                        "\n\nCe lien expire dans 24h.";
+
+        sendWeSendEmail(u.getEmail(), "Activez votre compte Station Market", mailContent);
 
         return "Inscription réussie, vérifiez votre e-mail pour activer votre compte.";
     }
