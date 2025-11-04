@@ -83,6 +83,7 @@ public class SecurityConfig {
 
                         // 1) PUBLIC : accès aux images uploadées
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/categories/by-slug/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
 
                         // 3) AUTH pour l’auth & swagger
