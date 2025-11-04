@@ -61,7 +61,6 @@ public class ProductController {
 
 
     @GetMapping("/by-marketplace/{slug}")
-    @PreAuthorize("hasAuthority('ROLE_VENDOR')")
     public ResponseEntity<List<ProductDto>> listByMarketplace(@PathVariable String slug) {
         List<ProductDto> list = productService.listByMarketplaceSlug(slug);
         return ResponseEntity.ok(list);
