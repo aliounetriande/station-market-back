@@ -117,6 +117,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/invitations/marketplace/**").hasAuthority("ROLE_VENDOR")
                         .requestMatchers(HttpMethod.DELETE, "/api/invitations/**").hasAuthority("ROLE_VENDOR")
 
+                        // Rendre l'endpoint public
+                        .requestMatchers(HttpMethod.GET, "/stationmarket/vendor/marketplaces/**").permitAll()
 
                         // accès restreint aux utilisateurs avec le rôle ROLE_VENDOR
                         .requestMatchers("/stationmarket/vendor/marketplaces/*").hasAuthority("ROLE_VENDOR")
