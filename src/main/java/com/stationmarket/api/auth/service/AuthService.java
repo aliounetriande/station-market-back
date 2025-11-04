@@ -52,7 +52,7 @@ public class AuthService {
         Resend resend = new Resend("re_VPhyUsXw_9jyC8yJXPvgkpr4buXvswmjU"); // Mets ta clé API Resend ici
 
         CreateEmailOptions params = CreateEmailOptions.builder()
-                .from("Station Market <cheicktriande@gmail.com>") // Remplace par ton domaine vérifié
+                .from("Acme <onboarding@resend.dev>") // Remplace par ton domaine vérifié
                 .to(to)
                 .subject(subject)
                 .html(htmlContent)
