@@ -1,5 +1,8 @@
 package com.stationmarket.api.auth.service;
 
+import com.resend.core.exception.ResendException;
+import com.resend.services.emails.model.CreateEmailOptions;
+import com.resend.services.emails.model.CreateEmailResponse;
 import com.stationmarket.api.auth.model.Role;
 import com.stationmarket.api.auth.model.Status;
 import com.stationmarket.api.auth.model.User;
@@ -17,8 +20,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-//import org.springframework.mail.SimpleMailMessage;
-//import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -29,7 +30,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
-
+import com.resend.*;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -43,26 +44,26 @@ public class AuthService {
     private final UserRepository userRepo;
     private final TokenRepository tokenRepo;
     private final PasswordEncoder encoder;
-    //private final JavaMailSender mailSender;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    private void sendWeSendEmail(String to, String subject, String content) {
-        String apiUrl = "https://api.wesend.io/v1/email/send";
-        String apiKey = "q0n_elf1m02aak1"; // Mets ta clé API ici
 
-        Map<String, Object> body = new HashMap<>();
-        body.put("to", to);
-        body.put("subject", subject);
-        body.put("content", content);
+    private void sendResendEmail(String to, String subject, String htmlContent) {
+        Resend resend = new Resend("re_VPhyUsXw_9jyC8yJXPvgkpr4buXvswmjU"); // Mets ta clé API Resend ici
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "Bearer " + apiKey);
+        CreateEmailOptions params = CreateEmailOptions.builder()
+                .from("Station Market <cheicktriande@gmail.com>") // Remplace par ton domaine vérifié
+                .to(to)
+                .subject(subject)
+                .html(htmlContent)
+                .build();
 
-        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-
-        restTemplate.postForEntity(apiUrl, request, String.class);
+        try {
+            CreateEmailResponse data = resend.emails().send(params);
+            System.out.println("Resend email ID: " + data.getId());
+        } catch (ResendException e) {
+            e.printStackTrace();
+        }
     }
 
     @Value("${app.front-url}")
@@ -128,7 +129,7 @@ public class AuthService {
                         "Merci de cliquer sur ce lien pour activer votre compte STATION MARKET :\n" + link +
                         "\n\nCe lien expire dans 24h.";
 
-        sendWeSendEmail(u.getEmail(), "Activez votre compte Station Market", mailContent);
+        sendResendEmail(u.getEmail(), "Activez votre compte Station Market", mailContent);
 
         return "Inscription réussie, vérifiez votre e-mail pour activer votre compte.";
     }
