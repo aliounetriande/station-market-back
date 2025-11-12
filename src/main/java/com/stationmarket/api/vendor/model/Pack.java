@@ -14,10 +14,10 @@ public class Pack {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private PackType packType;  // BASIC, STANDARD, PREMIUM
+    private PackType packType;  // BASIC, OR, DIAMAND
 
     private int maxMarketplaces; // Nombre maximal de Marketplaces pour ce pack
-
+    private int maxProductsPerMarketplace; // Nombre maximum de produits par marketplace
     // Vous pouvez ajouter d'autres informations spécifiques au pack, par exemple :
     private double price;
 

@@ -1,5 +1,5 @@
 package com.stationmarket.api.vendor.model;
 
 public enum PackType {
-    BASIC, STANDARD, PREMIUM
+    BASIC, OR, DIAMAND
 }

@@ -16,10 +16,12 @@ public class CorsConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // Permettre l'origine du frontend Angular et du domaine de production
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:4200", // Frontend local
-                "http://localhost:8100", // Mobile Ionic
-                "https://station-market.total-innovation.net" // Frontend en production
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+                "http://localhost:*",
+                "http://127.0.0.1:*",
+                "https://station-market.total-innovation.net", // Frontend en production
+                "capacitor://localhost",
+                "ionic://localhost"
         ));
 
         // Permettre toutes les méthodes HTTP
