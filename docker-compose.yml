@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: station_market
       POSTGRES_USER: sm_user
-      POSTGRES_PASSWORD: sm_pass
+      POSTGRES_PASSWORD: 8Llk18FyW8BlF89FGa4VW9eBPuVzDLop
     ports:
       - "5432:5432"
     volumes:
@@ -22,10 +22,10 @@ services:
       db:
           condition: service_healthy
     environment:
-      SPRING_PROFILES_ACTIVE: dev
-      #SPRING_DATASOURCE_URL: jdbc:postgresql://dpg-d4488lbe5dus73aq7e80-a:5432/station_market
-      #SPRING_DATASOURCE_USERNAME: sm_user
-      #SPRING_DATASOURCE_PASSWORD: 8Llk18FyW8BlF89FGa4VW9eBPuVzDLop
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://dpg-d4488lbe5dus73aq7e80-a:5432/station_market
+      SPRING_DATASOURCE_USERNAME: sm_user
+      SPRING_DATASOURCE_PASSWORD: 8Llk18FyW8BlF89FGa4VW9eBPuVzDLop
 
 volumes:
   pgdata:
