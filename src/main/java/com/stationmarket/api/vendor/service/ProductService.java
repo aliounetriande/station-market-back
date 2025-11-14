@@ -34,8 +34,7 @@ public class ProductService {
     // dossier local uploads/
     private final Path uploadDir = Paths.get("uploads");
 
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
 
     private final CategoryRepository categoryRepository;
     private final MarketplaceRepository marketplaceRepository;
